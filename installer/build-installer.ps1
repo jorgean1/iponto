@@ -18,6 +18,7 @@ $setupZip = Join-Path $dist 'Iponto-Setup.zip'
 Compress-Archive -Path (Join-Path $stage 'setup.cmd'),(Join-Path $stage 'Instalar-Iponto.ps1'),(Join-Path $stage 'Iponto-app.zip') -DestinationPath $setupZip -Force
 
 $targetExe = Join-Path $dist 'Iponto-Setup.exe'
+if (Test-Path -LiteralPath $targetExe) { Remove-Item -LiteralPath $targetExe -Force }
 $sed = Join-Path $stage 'iponto.sed'
 $sourceDir = $stage + '\'
 $content = @"
