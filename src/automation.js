@@ -31,12 +31,11 @@ async function visibleActionControls(page, kind) {
     if (found.length) return found;
   }
   if (kind === 'start') {
-    const activityLinks = page.locator('a.btnIniciar');
+    const activityLinks = page.locator('a.btnIniciar[onclick*="IniciarAtividade"]');
     for (const item of await activityLinks.all()) {
       if (!await item.isVisible().catch(() => false)) continue;
       const label = await item.innerText().catch(() => '');
-      const href = await item.getAttribute('href').catch(() => null);
-      if (/^\s*iniciar\s*$/i.test(label) && href && !/^javascript:/i.test(href)) found.push(item);
+      if (/^\s*iniciar\s*$/i.test(label)) found.push(item);
     }
     if (found.length) return found;
   }
@@ -127,6 +126,24 @@ export async function testAccess(settings, options = {}) {
     await session.page.waitForTimeout(1500);
     const startCount = (await visibleActionControls(session.page, 'start')).length;
     const stopCount = (await visibleActionControls(session.page, 'stop')).length;
+    const startTargets = await session.page.locator('a.btnIniciar').evaluateAll(elements => elements
+      .filter(element => /^\s*iniciar\s*$/i.test(element.textContent || ''))
+      .map(element => element.getAttribute('href'))
+      .filter(Boolean));
+    const startControls = await session.page.locator('button, a, input[type="button"], input[type="submit"], [role="button"], [onclick]').evaluateAll(elements => elements
+      .filter(element => {
+        const label = String(element.innerText || element.textContent || element.value || element.getAttribute('aria-label') || '').trim();
+        const style = getComputedStyle(element);
+        return /^iniciar$/i.test(label) && style.display !== 'none' && style.visibility !== 'hidden';
+      })
+      .map(element => ({
+        tag: element.tagName.toLowerCase(),
+        className: String(element.className || ''),
+        href: element.getAttribute('href') || '',
+        value: element.value || '',
+        onclick: element.getAttribute('onclick') || '',
+        parentClass: String(element.parentElement?.className || '')
+      })));
     if (!startCount && !stopCount) throw new IpontoError('Login concluído, mas os botões Iniciar/Parar não foram encontrados');
     return {
       ok: true,
@@ -134,6 +151,8 @@ export async function testAccess(settings, options = {}) {
       loginPerformed: session.loginPerformed,
       startButtons: startCount,
       stopButtons: stopCount,
+      startTargets,
+      startControls,
       finalUrl: session.page.url()
     };
   } catch (error) {
@@ -150,57 +169,82 @@ export async function punch(settings, kind, options = {}) {
   try {
     session = await openTarget(settings, options);
     const page = session.page;
+    const codeUsed = kind === 'start' ? String(settings.activityCode || '').trim() : '';
+    const attempted = new Set();
+    let selectedDescription = '';
+    let confirmed = false;
+    const maxAttempts = Number(options.maxAttempts || 3);
 
-    let codeUsed = '';
-    if (kind === 'start' && settings.activityCode) {
-      const code = await firstVisible([
-        page.getByLabel(/código da atividade/i), page.locator('input[name*="atividade" i]'),
-        page.locator('input[placeholder*="atividade" i]')
-      ]);
-      if (!code) throw new IpontoError('Campo Código da atividade não encontrado');
-      codeUsed = String(settings.activityCode).trim();
-      await code.fill(codeUsed);
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (attempt > 1) {
+        const response = await page.goto(settings.targetUrl, { waitUntil: 'domcontentloaded', timeout });
+        if (!response || response.status() >= 400) throw new IpontoError(`Página respondeu HTTP ${response?.status() || 'desconhecido'}`, 'página não respondeu');
+        await authenticate(page, settings);
+        await page.waitForTimeout(1200);
+      }
+
+      const currentStops = await visibleActionControls(page, 'stop');
+      if (kind === 'start' && currentStops.length) { confirmed = true; selectedDescription ||= 'atividade já estava em andamento'; break; }
+      if (kind === 'stop' && !currentStops.length) { confirmed = true; selectedDescription ||= 'atividade já estava parada'; break; }
+
+      let controls;
+      if (kind === 'start' && codeUsed) {
+        const code = await firstVisible([
+          page.getByLabel(/código da atividade/i), page.locator('input[name*="atividade" i]'),
+          page.locator('input[placeholder*="atividade" i]')
+        ]);
+        if (!code) throw new IpontoError('Campo Código da atividade não encontrado');
+        await code.fill(codeUsed);
+        controls = await visibleGenericStartControls(page);
+      } else {
+        controls = await visibleActionControls(page, kind);
+      }
+      if (!controls.length) throw new IpontoError(`Controle ${kind === 'start' ? 'Iniciar' : 'Parar'} não encontrado`);
+
+      let choices = [];
+      for (let index = 0; index < controls.length; index++) {
+        const signature = await controls[index].getAttribute('onclick').catch(() => null)
+          || await controls[index].getAttribute('href').catch(() => null)
+          || `${kind}-${index}`;
+        if (!attempted.has(signature)) choices.push({ control: controls[index], signature, index });
+      }
+      if (!choices.length) choices = controls.map((control, index) => ({ control, signature: `${kind}-repeat-${attempt}-${index}`, index }));
+      const choice = kind === 'start' && !codeUsed ? choices[Math.floor(Math.random() * choices.length)] : choices[0];
+      attempted.add(choice.signature);
+      selectedDescription = codeUsed
+        ? `código ${codeUsed}`
+        : kind === 'start' ? `atividade ${choice.index + 1} de ${controls.length}` : 'controle Parar';
+
+      const clickResult = await Promise.allSettled([choice.control.click()]);
+      if (clickResult[0].status === 'rejected') continue;
+      confirmed = await waitForPunchState(page, kind, options.verifyTimeoutMs ?? 15000);
+      if (confirmed) break;
     }
 
-    const controls = kind === 'start' && codeUsed
-      ? await visibleGenericStartControls(page)
-      : await visibleActionControls(page, kind);
-    if (!controls.length) throw new IpontoError(`Controle ${kind === 'start' ? 'Iniciar' : 'Parar'} não encontrado`);
-    const selectedIndex = kind === 'start' && !codeUsed ? Math.floor(Math.random() * controls.length) : 0;
-    const button = controls[selectedIndex];
-    await Promise.allSettled([
-      page.waitForLoadState('domcontentloaded', { timeout: 15000 }),
-      button.click()
-    ]);
-    const confirmed = await waitForPunchState(page, kind, options.verifyTimeoutMs ?? 15000);
-    if (!confirmed) {
-      throw new IpontoError(
-        kind === 'start'
-          ? 'O clique em Iniciar não foi confirmado: a atividade não ficou em andamento'
-          : 'O clique em Parar não foi confirmado: a atividade ainda aparece em andamento'
-      );
-    }
+    if (!confirmed) throw new IpontoError(
+      kind === 'start'
+        ? `Não foi possível iniciar a atividade após ${maxAttempts} tentativa(s) confirmadas`
+        : `Não foi possível parar a atividade após ${maxAttempts} tentativa(s) confirmadas`
+    );
 
-    await page.reload({ waitUntil: 'domcontentloaded', timeout });
-    await page.waitForTimeout(1000);
+    const refreshed = await page.goto(settings.targetUrl, { waitUntil: 'domcontentloaded', timeout });
+    if (!refreshed || refreshed.status() >= 400) throw new IpontoError('Falha ao atualizar a página para confirmar o ponto', 'página não respondeu');
+    await authenticate(page, settings);
+    await page.waitForTimeout(1200);
     const confirmedAfterRefresh = await waitForPunchState(page, kind, options.verifyTimeoutMs ?? 15000);
-    if (!confirmedAfterRefresh) {
-      throw new IpontoError(
-        kind === 'start'
-          ? 'Após atualizar a página, a atividade não permaneceu em andamento'
-          : 'Após atualizar a página, a atividade ainda aparece em andamento'
-      );
-    }
+    if (!confirmedAfterRefresh) throw new IpontoError(
+      kind === 'start'
+        ? 'Após atualizar /Lancamentos, a atividade não permaneceu em andamento'
+        : 'Após atualizar /Lancamentos, a atividade ainda aparece em andamento'
+    );
 
     const body = await page.locator('body').innerText();
     if (/erro|falha|inválid/i.test(body) && !/sem erro/i.test(body)) throw new IpontoError('O site exibiu uma mensagem de erro após o clique');
     return {
       ok: true,
       message: kind === 'start'
-        ? codeUsed
-          ? `Atividade ${codeUsed} iniciada pelo código configurado`
-          : `Botão Iniciar ${selectedIndex + 1} de ${controls.length} acionado aleatoriamente`
-        : 'Controle Parar acionado'
+        ? `Entrada confirmada no site usando ${selectedDescription}`
+        : `Saída confirmada no site usando ${selectedDescription}`
     };
   } catch (error) {
     if (error instanceof IpontoError) throw error;

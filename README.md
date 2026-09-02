@@ -33,6 +33,8 @@ Para acessar pelo Android na mesma rede, abra `http://IP-DO-COMPUTADOR:3077` no 
 - Quando o código da respectiva entrada está preenchido, o Iponto digita o código e usa o botão genérico **Iniciar**, sem sorteio.
 - Quando o código está vazio, o Iponto escolhe aleatoriamente um dos links de atividade `a.btnIniciar`. O botão genérico e o controle **Parar** não participam desse sorteio.
 - Um clique só é considerado bem-sucedido após confirmação do estado no site: **Parar** deve aparecer depois de iniciar e desaparecer depois de parar.
+- Sem código, são usados exclusivamente os links cujo `onclick` chama `IniciarAtividade(...)`. Se uma tentativa não for confirmada, o Iponto volta a `/Lancamentos`, reconcilia o estado e tenta outra atividade, até três vezes sem repetir a opção enquanto houver alternativas.
+- Os e-mails usam os assuntos **SUCESSO CONFIRMADO** ou **FALHA AO REGISTRAR** e incluem o identificador do mesmo evento salvo no histórico.
 - Após cada batida, o navegador automatizado atualiza a página de lançamentos e confirma novamente o estado. As telas abertas do Iponto detectam o novo sucesso e se atualizam automaticamente.
 
 As senhas são criptografadas com AES-256-GCM. A chave fica em `data/iponto.key`; proteja e faça backup desse arquivo. Opcionalmente defina `IPONTO_MASTER_KEY` no ambiente.

@@ -97,9 +97,11 @@ export class Store {
   }
 
   addEvent(event) {
-    this.data.events.unshift({ id: crypto.randomUUID(), at: new Date().toISOString(), ...event });
+    const saved = { id: crypto.randomUUID(), at: new Date().toISOString(), ...event };
+    this.data.events.unshift(saved);
     this.data.events = this.data.events.slice(0, 200);
     this.save();
+    return saved;
   }
 
   clearEvents() {
