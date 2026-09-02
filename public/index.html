@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0756a3"><title>Iponto</title>
+  <link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header><div class="brand"><span class="logo">I</span><div><h1>Iponto</h1><p>Seu ponto, no horário certo.</p></div></div><span id="status" class="pill">Carregando…</span></header>
+  <main>
+    <section class="hero"><div><span class="eyebrow">AUTOMAÇÃO DE JORNADA</span><h2>Configure uma vez.<br><em>O Iponto cuida do resto.</em></h2><p>Agendamentos, registro automático e alertas por e-mail em uma única tela.</p></div><div class="clock"><span>Próximo ponto</span><strong id="next-time">--:--</strong><small id="next-label">Aguardando configuração</small></div></section>
+
+    <form id="settings-form">
+      <section class="card"><div class="section-title"><span>1</span><div><h3>Horários</h3><p>Defina os quatro momentos da sua jornada.</p></div></div><div class="grid times">
+        <label>Entrada<input name="entryTime" type="time" required></label><label>Saída para almoço<input name="lunchTime" type="time" required></label>
+        <label>Retorno do almoço<input name="returnTime" type="time" required></label><label>Saída<input name="exitTime" type="time" required></label>
+      </div></section>
+      <section class="card"><div class="section-title"><span>2</span><div><h3>Acesso e atividade</h3><p>As senhas são criptografadas neste computador.</p></div></div><div class="grid">
+        <label>Usuário<input name="username" autocomplete="username" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
+        <label class="wide">Página de lançamento<input name="targetUrl" type="url" required></label><label>Códigos de atividade (opcional)<input name="activityCodes" placeholder="Ex.: 217696, 217153, 217156"></label>
+        <label>Fuso horário<input name="timezone" value="America/Sao_Paulo"></label>
+      </div><button type="button" class="secondary" id="test-access">Testar acesso à página</button></section>
+      <section class="card"><div class="section-title"><span>3</span><div><h3>Alertas por e-mail</h3><p>Use os dados SMTP do seu provedor de e-mail.</p></div></div><div class="grid">
+        <label>E-mail de alerta<input name="alertEmail" type="email" required></label><label>Remetente SMTP<input name="smtp.from" type="email" placeholder="iponto@empresa.com"></label>
+        <label>Servidor SMTP<input name="smtp.host" placeholder="smtp.office365.com"></label><label>Porta<input name="smtp.port" type="number" value="587"></label>
+        <label>Usuário SMTP<input name="smtp.user"></label><label>Senha SMTP<input name="smtp.password" type="password"></label>
+        <label class="check"><input name="smtp.secure" type="checkbox"> Usar SSL direto (geralmente porta 465)</label>
+      </div><button type="button" class="secondary" id="test-email">Testar e-mail</button></section>
+      <section class="actions"><label class="toggle"><input name="enabled" type="checkbox"><span></span> Automação ativa</label><button type="submit" class="primary">Salvar configuração</button></section>
+    </form>
+
+    <section class="card"><div class="section-title"><span>4</span><div><h3>Teste manual</h3><p>Executa agora; use com cuidado, pois registra um ponto real.</p></div></div><div class="manual">
+      <button data-job="entryTime">▶ Entrada</button><button data-job="lunchTime">■ Almoço</button><button data-job="returnTime">▶ Retorno</button><button data-job="exitTime">■ Saída</button>
+    </div></section>
+    <section class="card"><div class="section-title history-title"><span>✓</span><div><h3>Histórico</h3><p>Últimas execuções e alertas.</p></div><button type="button" class="danger-ghost" id="clear-history">Limpar histórico</button></div><div id="events" class="events"><p class="empty">Nenhuma execução registrada.</p></div></section>
+  </main>
+  <div id="toast" role="status"></div><script src="/app.js" type="module"></script>
+</body></html>
