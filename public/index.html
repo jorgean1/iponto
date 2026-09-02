@@ -14,7 +14,9 @@
       <section class="card"><div class="section-title"><span>1</span><div><h3>Horários</h3><p>Defina os quatro momentos da sua jornada.</p></div></div><div class="grid times">
         <label>Entrada<input name="entryTime" type="time" required></label><label>Saída para almoço<input name="lunchTime" type="time" required></label>
         <label>Retorno do almoço<input name="returnTime" type="time" required></label><label>Saída<input name="exitTime" type="time" required></label>
-      </div></section>
+      </div><div class="calendar-rules"><label>Dias de funcionamento</label><div class="weekdays">
+        <label><input name="workingDays.1" type="checkbox">Seg</label><label><input name="workingDays.2" type="checkbox">Ter</label><label><input name="workingDays.3" type="checkbox">Qua</label><label><input name="workingDays.4" type="checkbox">Qui</label><label><input name="workingDays.5" type="checkbox">Sex</label><label><input name="workingDays.6" type="checkbox">Sáb</label><label><input name="workingDays.7" type="checkbox">Dom</label>
+      </div><label>Feriados e férias<textarea name="excludedDates" rows="4" placeholder="Uma data ou período por linha:&#10;2026-09-07&#10;2026-12-21 a 2027-01-05"></textarea><small>Use AAAA-MM-DD. Para férias, informe data inicial e final separadas por “a”.</small></label></div></section>
       <section class="card"><div class="section-title"><span>2</span><div><h3>Acesso e atividade</h3><p>As senhas são criptografadas neste computador.</p></div></div><div class="grid">
         <label>Usuário<input name="username" autocomplete="username" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
         <label class="wide">Página de lançamento<input name="targetUrl" type="url" required></label>

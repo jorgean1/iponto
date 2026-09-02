@@ -8,6 +8,8 @@ const EMPTY = {
     username: '', password: '', alertEmail: '', timezone: 'America/Sao_Paulo',
     targetUrl: 'https://controledeprojetos.crptecnologia.com.br/Lancamentos',
     entryActivityCode: '', returnActivityCode: '', enabled: false,
+    workingDays: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: false, 7: false },
+    excludedDates: '',
     smtp: { host: '', port: 587, secure: false, user: '', password: '', from: '' }
   },
   events: []
@@ -51,7 +53,7 @@ export class Store {
   #load() {
     if (!fs.existsSync(this.file)) return structuredClone(EMPTY);
     const raw = JSON.parse(fs.readFileSync(this.file, 'utf8'));
-    const data = { ...structuredClone(EMPTY), ...raw, settings: { ...EMPTY.settings, ...raw.settings, smtp: { ...EMPTY.settings.smtp, ...raw.settings?.smtp } } };
+    const data = { ...structuredClone(EMPTY), ...raw, settings: { ...EMPTY.settings, ...raw.settings, workingDays: { ...EMPTY.settings.workingDays, ...raw.settings?.workingDays }, smtp: { ...EMPTY.settings.smtp, ...raw.settings?.smtp } } };
     if (data.settings.targetUrl === 'https://controledeprojetos.crptecnologia.com.br/Lancamento') {
       data.settings.targetUrl = 'https://controledeprojetos.crptecnologia.com.br/Lancamentos';
     }
@@ -87,6 +89,7 @@ export class Store {
     this.data.settings = {
       ...old, ...input,
       password: input.password === '********' ? old.password : input.password,
+      workingDays: { ...old.workingDays, ...input.workingDays },
       smtp: { ...old.smtp, ...smtpInput, password: smtpInput.password === '********' ? old.smtp.password : smtpInput.password }
     };
     this.save();

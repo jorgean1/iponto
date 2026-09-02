@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Store } from './store.js';
-import { Scheduler, JOBS } from './scheduler.js';
+import { Scheduler, JOBS, parseExcludedDates } from './scheduler.js';
 import { sendAlert } from './mailer.js';
 import { testAccess } from './automation.js';
 
@@ -22,6 +22,9 @@ app.put('/api/settings', (req, res) => {
   const missing = required.filter(k => !body[k]);
   if (missing.length) return res.status(400).json({ error: `Campos obrigatórios: ${missing.join(', ')}` });
   if (!/^https:\/\//i.test(body.targetUrl)) return res.status(400).json({ error: 'A URL deve começar com https://' });
+  if (!Object.values(body.workingDays || {}).some(Boolean)) return res.status(400).json({ error: 'Selecione pelo menos um dia da semana' });
+  const exclusions = parseExcludedDates(body.excludedDates);
+  if (exclusions.invalid.length) return res.status(400).json({ error: `Datas ou períodos inválidos: ${exclusions.invalid.join(', ')}` });
   const settings = store.updateSettings(body);
   scheduler.start();
   res.json(settings);

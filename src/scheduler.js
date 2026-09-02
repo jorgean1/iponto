@@ -10,6 +10,25 @@ const JOBS = [
 ];
 const CATCH_UP_MINUTES = 15;
 
+export function parseExcludedDates(spec = '') {
+  const ranges = [];
+  const invalid = [];
+  for (const item of String(spec).split(/\r?\n|,/).map(value => value.trim()).filter(Boolean)) {
+    const match = item.match(/^(\d{4}-\d{2}-\d{2})(?:\s*(?:a|até|ate|\.\.)\s*(\d{4}-\d{2}-\d{2}))?$/i);
+    if (!match) { invalid.push(item); continue; }
+    const start = DateTime.fromISO(match[1]);
+    const end = DateTime.fromISO(match[2] || match[1]);
+    if (!start.isValid || !end.isValid || end < start) invalid.push(item);
+    else ranges.push({ start: start.toISODate(), end: end.toISODate() });
+  }
+  return { ranges, invalid };
+}
+
+export function isExcludedDate(date, spec = '') {
+  const { ranges } = parseExcludedDates(spec);
+  return ranges.some(range => date >= range.start && date <= range.end);
+}
+
 export class Scheduler {
   constructor(store) { this.store = store; this.timer = null; this.running = false; }
   start() { this.stop(); this.timer = setInterval(() => this.tick(), 15000); this.tick(); }
@@ -20,6 +39,7 @@ export class Scheduler {
     if (!s.enabled || this.running) return;
     const now = DateTime.now().setZone(s.timezone);
     const date = now.toISODate();
+    if (!s.workingDays?.[String(now.weekday)] || isExcludedDate(date, s.excludedDates)) return;
     for (const job of JOBS) {
       const jobId = `${date}:${job.key}`;
       if (this.store.data.events.some(e => e.jobId === jobId)) continue;

@@ -23,6 +23,8 @@ Para acessar pelo Android na mesma rede, abra `http://IP-DO-COMPUTADOR:3077` no 
 ## Configuração
 
 - Informe os quatro horários, credenciais do site e e-mail de alerta.
+- Selecione os dias da semana em que a automação pode funcionar. O padrão é segunda a sexta-feira.
+- Em **Feriados e férias**, informe uma data por linha (`2026-09-07`) ou um período (`2026-12-21 a 2027-01-05`). Nessas datas nenhuma ação ou e-mail é executado.
 - Preencha SMTP. Microsoft 365 costuma usar `smtp.office365.com`, porta `587`, SSL direto desmarcado. Gmail costuma exigir senha de app.
 - Use **Testar e-mail**.
 - Use **Testar acesso à página** para validar URL, login e presença dos botões sem registrar ponto.
