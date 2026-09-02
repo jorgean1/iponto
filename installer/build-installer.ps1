@@ -66,6 +66,10 @@ SourceFiles0=$sourceDir
 "@
 Set-Content -LiteralPath $sed -Value $content -Encoding ASCII
 & iexpress.exe /N /Q $sed
+for ($attempt = 0; $attempt -lt 30 -and -not (Test-Path -LiteralPath $targetExe); $attempt++) {
+  Start-Sleep -Seconds 1
+}
 if (-not (Test-Path -LiteralPath $targetExe)) { throw 'O IExpress não gerou o executável.' }
+Get-ChildItem -LiteralPath $dist -Filter '~Iponto-Setup.CAB' -ErrorAction SilentlyContinue | Remove-Item -Force
 Remove-Item -LiteralPath $stage -Recurse -Force
 Get-Item $targetExe,$setupZip | Select-Object FullName,Length
