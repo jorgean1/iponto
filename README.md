@@ -41,7 +41,7 @@ As senhas são criptografadas com AES-256-GCM. A chave fica em `data/iponto.key`
 
 ## Inicialização automática
 
-Execute `powershell -ExecutionPolicy Bypass -File .\install-windows-task.ps1` dentro de `D:\iponto`. Isso cria uma tarefa do Windows para iniciar o Iponto no logon do usuário atual.
+Execute `powershell -ExecutionPolicy Bypass -File .\install-windows-task.ps1` dentro de `D:\iponto`. Isso cria uma tarefa que inicia no logon, funciona na bateria e possui um watchdog a cada cinco minutos para recuperar o serviço caso ele pare.
 
 ## Diagnóstico
 

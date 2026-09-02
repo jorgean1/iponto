@@ -47,9 +47,10 @@ try {
 
   Write-Host '[5/7] Configurando inicialização automática...'
   $action = New-ScheduledTaskAction -Execute $nodePath -Argument 'src/server.js' -WorkingDirectory $InstallDir
-  $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
-  $taskSettings = New-ScheduledTaskSettingsSet -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero) -StartWhenAvailable
-  Register-ScheduledTask -TaskName 'Iponto' -Action $action -Trigger $trigger -Settings $taskSettings -Description 'Serviço autônomo do Iponto' -Force | Out-Null
+  $logonTrigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
+  $watchdogTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).Date -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration (New-TimeSpan -Days 3650)
+  $taskSettings = New-ScheduledTaskSettingsSet -RestartCount 10 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -DontStopOnIdleEnd -StartWhenAvailable -MultipleInstances IgnoreNew
+  Register-ScheduledTask -TaskName 'Iponto' -Action $action -Trigger @($logonTrigger,$watchdogTrigger) -Settings $taskSettings -Description 'Serviço autônomo do Iponto com watchdog' -Force | Out-Null
 
   Write-Host '[6/7] Configurando rede e atalhos...'
   if (-not (Get-NetFirewallRule -DisplayName 'Iponto - Porta 3077' -ErrorAction SilentlyContinue)) {
