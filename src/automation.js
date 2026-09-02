@@ -66,10 +66,16 @@ async function visibleGenericStartControls(page) {
 
 async function waitForPunchState(page, kind, timeoutMs = 15000) {
   const deadline = Date.now() + timeoutMs;
+  let stableAbsenceChecks = 0;
   while (Date.now() < deadline) {
     const stopControls = await visibleActionControls(page, 'stop');
     if (kind === 'start' && stopControls.length > 0) return true;
-    if (kind === 'stop' && stopControls.length === 0) return true;
+    if (kind === 'stop' && stopControls.length === 0) {
+      stableAbsenceChecks += 1;
+      if (stableAbsenceChecks >= 3) return true;
+    } else if (kind === 'stop') {
+      stableAbsenceChecks = 0;
+    }
     await page.waitForTimeout(500);
   }
   return false;
@@ -172,6 +178,17 @@ export async function punch(settings, kind, options = {}) {
         kind === 'start'
           ? 'O clique em Iniciar não foi confirmado: a atividade não ficou em andamento'
           : 'O clique em Parar não foi confirmado: a atividade ainda aparece em andamento'
+      );
+    }
+
+    await page.reload({ waitUntil: 'domcontentloaded', timeout });
+    await page.waitForTimeout(1000);
+    const confirmedAfterRefresh = await waitForPunchState(page, kind, options.verifyTimeoutMs ?? 15000);
+    if (!confirmedAfterRefresh) {
+      throw new IpontoError(
+        kind === 'start'
+          ? 'Após atualizar a página, a atividade não permaneceu em andamento'
+          : 'Após atualizar a página, a atividade ainda aparece em andamento'
       );
     }
 

@@ -27,9 +27,11 @@ test('detecta três controles Iniciar e o link Parar personalizado', async () =>
 });
 
 test('só confirma entrada quando Parar aparece após clicar em uma atividade', async () => {
+  let startedPageLoads = 0;
   const server = http.createServer((req, res) => {
     res.setHeader('content-type', 'text/html');
     if (req.url.startsWith('/Lancamentos/IniciarAtividade/')) {
+      startedPageLoads += 1;
       res.end('<a class="btnParar" href="/Lancamentos/PararAtividade">Parar</a>');
     } else {
       res.end(`
@@ -44,6 +46,7 @@ test('só confirma entrada quando Parar aparece após clicar em uma atividade', 
   try {
     const result = await punch({ targetUrl: `http://127.0.0.1:${server.address().port}`, timezone: 'America/Sao_Paulo' }, 'start');
     assert.match(result.message, /1 de 3|2 de 3|3 de 3/);
+    assert.ok(startedPageLoads >= 2, 'a página iniciada deve ser carregada novamente para confirmação');
   } finally { server.close(); }
 });
 
