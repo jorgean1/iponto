@@ -44,13 +44,8 @@ export class Scheduler {
   async execute(job, jobId = `manual:${Date.now()}`, time = DateTime.now().setZone(this.store.data.settings.timezone).toFormat('HH:mm')) {
     this.running = true;
     const s = structuredClone(this.store.data.settings);
-    if (job.kind === 'start') {
-      const codes = String(s.activityCodes || '').split(/[,;\s]+/).filter(Boolean);
-      if (codes.length) {
-        const priorStarts = this.store.data.events.filter(e => e.status === 'success' && ['entrada', 'retorno do almoço'].includes(e.type)).length;
-        s.activityCode = codes[priorStarts % codes.length];
-      }
-    }
+    if (job.key === 'entryTime') s.activityCode = String(s.entryActivityCode || '').trim();
+    if (job.key === 'returnTime') s.activityCode = String(s.returnActivityCode || '').trim();
     try {
       const result = await punch(s, job.kind);
       const message = `Ponto de ${job.label} ${time} batido com sucesso`;

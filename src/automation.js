@@ -51,6 +51,19 @@ async function visibleActionControls(page, kind) {
   return found;
 }
 
+async function visibleGenericStartControls(page) {
+  const found = [];
+  const candidates = page.locator('button, input[type="button"], input[type="submit"]');
+  for (const item of await candidates.all()) {
+    if (!await item.isVisible().catch(() => false)) continue;
+    const label = await item.evaluate(element => String(
+      element.innerText || element.textContent || element.value || element.getAttribute('aria-label') || ''
+    ).trim()).catch(() => '');
+    if (/^iniciar$/i.test(label)) found.push(item);
+  }
+  return found;
+}
+
 async function waitForPunchState(page, kind, timeoutMs = 15000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -132,17 +145,22 @@ export async function punch(settings, kind, options = {}) {
     session = await openTarget(settings, options);
     const page = session.page;
 
+    let codeUsed = '';
     if (kind === 'start' && settings.activityCode) {
       const code = await firstVisible([
         page.getByLabel(/código da atividade/i), page.locator('input[name*="atividade" i]'),
         page.locator('input[placeholder*="atividade" i]')
       ]);
-      if (code) await code.fill(settings.activityCode);
+      if (!code) throw new IpontoError('Campo Código da atividade não encontrado');
+      codeUsed = String(settings.activityCode).trim();
+      await code.fill(codeUsed);
     }
 
-    const controls = await visibleActionControls(page, kind);
+    const controls = kind === 'start' && codeUsed
+      ? await visibleGenericStartControls(page)
+      : await visibleActionControls(page, kind);
     if (!controls.length) throw new IpontoError(`Controle ${kind === 'start' ? 'Iniciar' : 'Parar'} não encontrado`);
-    const selectedIndex = kind === 'start' ? Math.floor(Math.random() * controls.length) : 0;
+    const selectedIndex = kind === 'start' && !codeUsed ? Math.floor(Math.random() * controls.length) : 0;
     const button = controls[selectedIndex];
     await Promise.allSettled([
       page.waitForLoadState('domcontentloaded', { timeout: 15000 }),
@@ -162,7 +180,9 @@ export async function punch(settings, kind, options = {}) {
     return {
       ok: true,
       message: kind === 'start'
-        ? `Botão Iniciar ${selectedIndex + 1} de ${controls.length} acionado aleatoriamente`
+        ? codeUsed
+          ? `Atividade ${codeUsed} iniciada pelo código configurado`
+          : `Botão Iniciar ${selectedIndex + 1} de ${controls.length} acionado aleatoriamente`
         : 'Controle Parar acionado'
     };
   } catch (error) {

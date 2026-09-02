@@ -60,3 +60,31 @@ test('rejeita falso sucesso quando o clique não inicia a atividade', async () =
     );
   } finally { server.close(); }
 });
+
+test('usa o código configurado no botão genérico sem sortear atividade', async () => {
+  let requestedUrl = '';
+  const server = http.createServer((req, res) => {
+    requestedUrl = req.url;
+    res.setHeader('content-type', 'text/html');
+    if (req.url.startsWith('/started')) {
+      res.end('<a class="btnParar" href="/Lancamentos/PararAtividade">Parar</a>');
+    } else {
+      res.end(`
+        <form action="/started"><input name="codigoAtividade"><button type="submit">Iniciar</button></form>
+        <a class="btnIniciar" href="/random/1">Iniciar</a>
+        <a class="btnIniciar" href="/random/2">Iniciar</a>
+        <a class="btnIniciar" href="/random/3">Iniciar</a>
+      `);
+    }
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const result = await punch({
+      targetUrl: `http://127.0.0.1:${server.address().port}`,
+      timezone: 'America/Sao_Paulo', activityCode: '217696'
+    }, 'start');
+    assert.match(result.message, /217696/);
+    assert.match(requestedUrl, /codigoAtividade=217696/);
+    assert.doesNotMatch(requestedUrl, /random/);
+  } finally { server.close(); }
+});

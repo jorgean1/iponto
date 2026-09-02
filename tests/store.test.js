@@ -27,3 +27,12 @@ test('limpa somente o histórico e preserva as configurações', () => {
   assert.equal(store.data.events.length, 0);
   assert.equal(store.data.settings.username, 'usuario-teste');
 });
+
+test('mantém códigos separados para primeira e segunda entrada', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'iponto-'));
+  const store = new Store(dir);
+  store.updateSettings({ entryActivityCode: '111', returnActivityCode: '222' });
+  const reloaded = new Store(dir);
+  assert.equal(reloaded.data.settings.entryActivityCode, '111');
+  assert.equal(reloaded.data.settings.returnActivityCode, '222');
+});

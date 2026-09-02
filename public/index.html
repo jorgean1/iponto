@@ -17,7 +17,9 @@
       </div></section>
       <section class="card"><div class="section-title"><span>2</span><div><h3>Acesso e atividade</h3><p>As senhas são criptografadas neste computador.</p></div></div><div class="grid">
         <label>Usuário<input name="username" autocomplete="username" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
-        <label class="wide">Página de lançamento<input name="targetUrl" type="url" required></label><label>Códigos de atividade (opcional)<input name="activityCodes" placeholder="Ex.: 217696, 217153, 217156"></label>
+        <label class="wide">Página de lançamento<input name="targetUrl" type="url" required></label>
+        <label>Código de atividade (opcional) - 1ª entrada<input name="entryActivityCode" placeholder="Ex.: 217696"></label>
+        <label>Código de atividade (opcional) - 2ª entrada<input name="returnActivityCode" placeholder="Ex.: 217153"></label>
         <label>Fuso horário<input name="timezone" value="America/Sao_Paulo"></label>
       </div><button type="button" class="secondary" id="test-access">Testar acesso à página</button></section>
       <section class="card"><div class="section-title"><span>3</span><div><h3>Alertas por e-mail</h3><p>Use os dados SMTP do seu provedor de e-mail.</p></div></div><div class="grid">

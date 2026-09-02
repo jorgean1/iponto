@@ -7,7 +7,7 @@ const EMPTY = {
     entryTime: '08:00', lunchTime: '12:00', returnTime: '13:00', exitTime: '17:00',
     username: '', password: '', alertEmail: '', timezone: 'America/Sao_Paulo',
     targetUrl: 'https://controledeprojetos.crptecnologia.com.br/Lancamentos',
-    activityCodes: '', enabled: false,
+    entryActivityCode: '', returnActivityCode: '', enabled: false,
     smtp: { host: '', port: 587, secure: false, user: '', password: '', from: '' }
   },
   events: []
@@ -54,6 +54,11 @@ export class Store {
     const data = { ...structuredClone(EMPTY), ...raw, settings: { ...EMPTY.settings, ...raw.settings, smtp: { ...EMPTY.settings.smtp, ...raw.settings?.smtp } } };
     if (data.settings.targetUrl === 'https://controledeprojetos.crptecnologia.com.br/Lancamento') {
       data.settings.targetUrl = 'https://controledeprojetos.crptecnologia.com.br/Lancamentos';
+    }
+    if (!data.settings.entryActivityCode && !data.settings.returnActivityCode && data.settings.activityCodes) {
+      const legacyCodes = String(data.settings.activityCodes).split(/[,;\s]+/).filter(Boolean);
+      data.settings.entryActivityCode = legacyCodes[0] || '';
+      data.settings.returnActivityCode = legacyCodes[1] || '';
     }
     data.settings.password = this.#decrypt(data.settings.password);
     data.settings.smtp.password = this.#decrypt(data.settings.smtp.password);
