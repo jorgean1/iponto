@@ -28,7 +28,8 @@ Para acessar pelo Android na mesma rede, abra `http://IP-DO-COMPUTADOR:3077` no 
 - Use **Testar acesso à página** para validar URL, login e presença dos botões sem registrar ponto.
 - Salve e ative **Automação ativa**.
 - Os códigos de atividade são opcionais. Informe um ou vários separados por vírgula; o Iponto alterna a lista a cada **Entrada** e **Retorno** bem-sucedidos.
-- Quando a página exibe várias opções **Iniciar**, o Iponto escolhe aleatoriamente uma das opções visíveis. O controle **Parar** nunca participa desse sorteio.
+- Quando a página exibe várias atividades **Iniciar**, o Iponto escolhe aleatoriamente um dos links de atividade `a.btnIniciar`. O botão genérico ao lado do código e o controle **Parar** nunca participam desse sorteio.
+- Um clique só é considerado bem-sucedido após confirmação do estado no site: **Parar** deve aparecer depois de iniciar e desaparecer depois de parar.
 
 As senhas são criptografadas com AES-256-GCM. A chave fica em `data/iponto.key`; proteja e faça backup desse arquivo. Opcionalmente defina `IPONTO_MASTER_KEY` no ambiente.
 

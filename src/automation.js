@@ -30,6 +30,16 @@ async function visibleActionControls(page, kind) {
     }
     if (found.length) return found;
   }
+  if (kind === 'start') {
+    const activityLinks = page.locator('a.btnIniciar');
+    for (const item of await activityLinks.all()) {
+      if (!await item.isVisible().catch(() => false)) continue;
+      const label = await item.innerText().catch(() => '');
+      const href = await item.getAttribute('href').catch(() => null);
+      if (/^\s*iniciar\s*$/i.test(label) && href && !/^javascript:/i.test(href)) found.push(item);
+    }
+    if (found.length) return found;
+  }
   const candidates = page.locator('button, a, input[type="button"], input[type="submit"], [role="button"], [onclick]');
   for (const item of await candidates.all()) {
     if (!await item.isVisible().catch(() => false)) continue;
@@ -39,6 +49,17 @@ async function visibleActionControls(page, kind) {
     if (label === word || label.includes(word)) found.push(item);
   }
   return found;
+}
+
+async function waitForPunchState(page, kind, timeoutMs = 15000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const stopControls = await visibleActionControls(page, 'stop');
+    if (kind === 'start' && stopControls.length > 0) return true;
+    if (kind === 'stop' && stopControls.length === 0) return true;
+    await page.waitForTimeout(500);
+  }
+  return false;
 }
 
 async function authenticate(page, settings) {
@@ -123,8 +144,18 @@ export async function punch(settings, kind, options = {}) {
     if (!controls.length) throw new IpontoError(`Controle ${kind === 'start' ? 'Iniciar' : 'Parar'} não encontrado`);
     const selectedIndex = kind === 'start' ? Math.floor(Math.random() * controls.length) : 0;
     const button = controls[selectedIndex];
-    await button.click();
-    await page.waitForTimeout(1200);
+    await Promise.allSettled([
+      page.waitForLoadState('domcontentloaded', { timeout: 15000 }),
+      button.click()
+    ]);
+    const confirmed = await waitForPunchState(page, kind, options.verifyTimeoutMs ?? 15000);
+    if (!confirmed) {
+      throw new IpontoError(
+        kind === 'start'
+          ? 'O clique em Iniciar não foi confirmado: a atividade não ficou em andamento'
+          : 'O clique em Parar não foi confirmado: a atividade ainda aparece em andamento'
+      );
+    }
 
     const body = await page.locator('body').innerText();
     if (/erro|falha|inválid/i.test(body) && !/sem erro/i.test(body)) throw new IpontoError('O site exibiu uma mensagem de erro após o clique');
