@@ -3,6 +3,7 @@ const toast = document.querySelector('#toast');
 let state;
 let knownEventIds = new Set();
 let eventsInitialized = false;
+let hiddenAt = 0;
 
 const notify = (message) => { toast.textContent = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 4200); };
 
@@ -31,4 +32,5 @@ document.querySelector('#test-access').addEventListener('click', async e => { e.
 document.querySelectorAll('[data-job]').forEach(button=>button.addEventListener('click',async()=>{ if(!confirm('Esta ação pode registrar um ponto real no site. Continuar?'))return; button.disabled=true; notify('Executando automação…'); try{const res=await fetch(`/api/run/${button.dataset.job}`,{method:'POST'});const data=await res.json();if(!res.ok)throw new Error(data.message||data.error);notify(data.message);await load()}catch(e){notify(e.message);await load()}finally{button.disabled=false} }));
 document.querySelector('#clear-history').addEventListener('click', async e => { if(!confirm('Apagar todo o histórico do Iponto? Esta ação não pode ser desfeita.'))return; e.target.disabled=true; try { const res=await fetch('/api/events',{method:'DELETE'}); const data=await res.json(); if(!res.ok)throw new Error(data.error); document.querySelector('#events').innerHTML='<p class="empty">Nenhuma execução registrada.</p>'; notify(`${data.removed} registro(s) removido(s).`); } catch(error){notify(error.message)} finally{e.target.disabled=false} });
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){hiddenAt=Date.now();return;}if(hiddenAt&&Date.now()-hiddenAt>5000)location.reload();});
 load().then(()=>setInterval(watchPunches,2000)).catch(e=>notify(`Falha ao carregar: ${e.message}`));
