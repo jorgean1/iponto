@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Iponto - Atualização automática",
+  "version": "1.0.0",
+  "description": "Atualiza as páginas do Iponto e do Controle de Projetos após um ponto confirmado.",
+  "permissions": ["alarms", "storage", "tabs"],
+  "host_permissions": [
+    "http://localhost:3077/*",
+    "https://controledeprojetos.crptecnologia.com.br/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_title": "Iponto",
+    "default_popup": "popup.html"
+  }
+}

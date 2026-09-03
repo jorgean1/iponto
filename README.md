@@ -37,6 +37,7 @@ Para acessar pelo Android na mesma rede, abra `http://IP-DO-COMPUTADOR:3077` no 
 - Os e-mails usam os assuntos **SUCESSO CONFIRMADO** ou **FALHA AO REGISTRAR** e incluem o identificador do mesmo evento salvo no histórico.
 - Após cada batida, o navegador automatizado atualiza a página de lançamentos e confirma novamente o estado. As telas abertas do Iponto detectam o novo sucesso e se atualizam automaticamente.
 - Se o navegador suspender a aba do Iponto em segundo plano, ela recarrega automaticamente ao voltar a ficar visível. Abas externas do Controle de Projetos não podem ser controladas pela PWA.
+- Para atualizar também a aba externa do Controle de Projetos sem foco, instale a extensão de navegador em `extension`. Ela monitora pontos confirmados, recarrega as duas páginas e oferece o botão **Atualizar páginas agora**. As instruções estão em `extension/README.md` e o pacote pronto em `dist/Iponto-Extensao-Chrome.zip`.
 
 As senhas são criptografadas com AES-256-GCM. A chave fica em `data/iponto.key`; proteja e faça backup desse arquivo. Opcionalmente defina `IPONTO_MASTER_KEY` no ambiente.
 
