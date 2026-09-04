@@ -19,3 +19,7 @@ test('menu Ajuda oferece manual e modal Sobre na versão do pacote', () => {
   assert.match(html, /id="about-dialog"/);
   assert.match(html, new RegExp(`Versão ${pkg.version.replaceAll('.', '\\.')}`));
 });
+
+test('campo de senha SMTP identifica o uso da senha de app do Google', () => {
+  assert.match(html, /Senha SMTP \(App Google\)/);
+});
