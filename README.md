@@ -22,6 +22,8 @@ Para acessar pelo Android na mesma rede, abra `http://IP-DO-COMPUTADOR:3077` no 
 
 ## Configuração
 
+- A seção **Horários** inicia expandida. Depois da primeira configuração, **Acesso e atividade**, **Alertas por e-mail**, **Teste manual** e **Histórico** iniciam recolhidos e podem ser abertos pelo título.
+- O menu **Ajuda** abre o manual de instruções e o modal **Sobre o Iponto**, com versão e informações de desenvolvimento.
 - Informe os quatro horários, credenciais do site e e-mail de alerta.
 - Selecione os dias da semana em que a automação pode funcionar. O padrão é segunda a sexta-feira.
 - Em **Feriados e férias**, informe uma data por linha (`2026-09-07`) ou um período (`2026-12-21 a 2027-01-05`). Nessas datas nenhuma ação ou e-mail é executado.

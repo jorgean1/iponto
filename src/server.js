@@ -14,6 +14,7 @@ const app = express();
 
 app.use(express.json({ limit: '100kb' }));
 app.use(express.static(path.join(root, 'public')));
+app.get('/manual.pdf', (_req, res) => res.sendFile(path.join(root, 'output', 'pdf', 'Manual-do-Iponto.pdf')));
 
 app.get('/api/state', (_req, res) => res.json(store.getPublic()));
 app.put('/api/settings', (req, res) => {

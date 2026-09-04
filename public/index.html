@@ -6,37 +6,38 @@
   <link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header><div class="brand"><span class="logo">I</span><div><h1>Iponto</h1><p>Seu ponto, no horário certo.</p></div></div><span id="status" class="pill">Carregando…</span></header>
+  <header><div class="brand"><span class="logo">I</span><div><h1>Iponto</h1><p>Seu ponto, no horário certo.</p></div></div><div class="header-actions"><span id="status" class="pill">Carregando…</span><div class="help-menu"><button type="button" id="help-toggle" aria-expanded="false" aria-haspopup="menu">Ajuda ▾</button><div class="help-dropdown" role="menu"><a href="/manual.pdf" target="_blank" rel="noopener" role="menuitem">Abrir manual de instruções</a><button type="button" id="about-open" role="menuitem">Sobre o Iponto</button></div></div></div></header>
   <main>
     <section class="hero"><div><span class="eyebrow">AUTOMAÇÃO DE JORNADA</span><h2>Configure uma vez.<br><em>O Iponto cuida do resto.</em></h2><p>Agendamentos, registro automático e alertas por e-mail em uma única tela.</p></div><div class="clock"><span>Próximo ponto</span><strong id="next-time">--:--</strong><small id="next-label">Aguardando configuração</small></div></section>
 
     <form id="settings-form">
-      <section class="card"><div class="section-title"><span>1</span><div><h3>Horários</h3><p>Defina os quatro momentos da sua jornada.</p></div></div><div class="grid times">
+      <details class="card collapsible" data-section="hours" open><summary><div class="section-title"><span>1</span><div><h3>Horários</h3><p>Defina os quatro momentos da sua jornada.</p></div><i aria-hidden="true">⌄</i></div></summary><div class="section-body"><div class="grid times">
         <label>Entrada<input name="entryTime" type="time" required></label><label>Saída para almoço<input name="lunchTime" type="time" required></label>
         <label>Retorno do almoço<input name="returnTime" type="time" required></label><label>Saída<input name="exitTime" type="time" required></label>
       </div><div class="calendar-rules"><label>Dias de funcionamento</label><div class="weekdays">
         <label><input name="workingDays.1" type="checkbox">Seg</label><label><input name="workingDays.2" type="checkbox">Ter</label><label><input name="workingDays.3" type="checkbox">Qua</label><label><input name="workingDays.4" type="checkbox">Qui</label><label><input name="workingDays.5" type="checkbox">Sex</label><label><input name="workingDays.6" type="checkbox">Sáb</label><label><input name="workingDays.7" type="checkbox">Dom</label>
-      </div><label>Feriados e férias<textarea name="excludedDates" rows="4" placeholder="Uma data ou período por linha:&#10;2026-09-07&#10;2026-12-21 a 2027-01-05"></textarea><small>Use AAAA-MM-DD. Para férias, informe data inicial e final separadas por “a”.</small></label></div></section>
-      <section class="card"><div class="section-title"><span>2</span><div><h3>Acesso e atividade</h3><p>As senhas são criptografadas neste computador.</p></div></div><div class="grid">
+      </div><label>Feriados e férias<textarea name="excludedDates" rows="4" placeholder="Uma data ou período por linha:&#10;2026-09-07&#10;2026-12-21 a 2027-01-05"></textarea><small>Use AAAA-MM-DD. Para férias, informe data inicial e final separadas por “a”.</small></label></div></div></details>
+      <details class="card collapsible auto-collapse" data-section="access"><summary><div class="section-title"><span>2</span><div><h3>Acesso e atividade</h3><p>As senhas são criptografadas neste computador.</p></div><i aria-hidden="true">⌄</i></div></summary><div class="section-body"><div class="grid">
         <label>Usuário<input name="username" autocomplete="username" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label>
         <label class="wide">Página de lançamento<input name="targetUrl" type="url" required></label>
         <label>Código de atividade (opcional) - 1ª entrada<input name="entryActivityCode" placeholder="Ex.: 217696"></label>
         <label>Código de atividade (opcional) - 2ª entrada<input name="returnActivityCode" placeholder="Ex.: 217153"></label>
         <label>Fuso horário<input name="timezone" value="America/Sao_Paulo"></label>
-      </div><button type="button" class="secondary" id="test-access">Testar acesso à página</button></section>
-      <section class="card"><div class="section-title"><span>3</span><div><h3>Alertas por e-mail</h3><p>Use os dados SMTP do seu provedor de e-mail.</p></div></div><div class="grid">
+      </div><button type="button" class="secondary" id="test-access">Testar acesso à página</button></div></details>
+      <details class="card collapsible auto-collapse" data-section="email"><summary><div class="section-title"><span>3</span><div><h3>Alertas por e-mail</h3><p>Use os dados SMTP do seu provedor de e-mail.</p></div><i aria-hidden="true">⌄</i></div></summary><div class="section-body"><div class="grid">
         <label>E-mail de alerta<input name="alertEmail" type="email" required></label><label>Remetente SMTP<input name="smtp.from" type="email" placeholder="iponto@empresa.com"></label>
         <label>Servidor SMTP<input name="smtp.host" placeholder="smtp.office365.com"></label><label>Porta<input name="smtp.port" type="number" value="587"></label>
         <label>Usuário SMTP<input name="smtp.user"></label><label>Senha SMTP<input name="smtp.password" type="password"></label>
         <label class="check"><input name="smtp.secure" type="checkbox"> Usar SSL direto (geralmente porta 465)</label>
-      </div><button type="button" class="secondary" id="test-email">Testar e-mail</button></section>
+      </div><button type="button" class="secondary" id="test-email">Testar e-mail</button></div></details>
       <section class="actions"><label class="toggle"><input name="enabled" type="checkbox"><span></span> Automação ativa</label><button type="submit" class="primary">Salvar configuração</button></section>
     </form>
 
-    <section class="card"><div class="section-title"><span>4</span><div><h3>Teste manual</h3><p>Executa agora; use com cuidado, pois registra um ponto real.</p></div></div><div class="manual">
+    <details class="card collapsible auto-collapse" data-section="manual"><summary><div class="section-title"><span>4</span><div><h3>Teste manual</h3><p>Executa agora; use com cuidado, pois registra um ponto real.</p></div><i aria-hidden="true">⌄</i></div></summary><div class="section-body"><div class="manual">
       <button data-job="entryTime">▶ Entrada</button><button data-job="lunchTime">■ Almoço</button><button data-job="returnTime">▶ Retorno</button><button data-job="exitTime">■ Saída</button>
-    </div></section>
-    <section class="card"><div class="section-title history-title"><span>✓</span><div><h3>Histórico</h3><p>Últimas execuções e alertas.</p></div><button type="button" class="danger-ghost" id="clear-history">Limpar histórico</button></div><div id="events" class="events"><p class="empty">Nenhuma execução registrada.</p></div></section>
+    </div></div></details>
+    <details class="card collapsible auto-collapse" data-section="history"><summary><div class="section-title"><span>✓</span><div><h3>Histórico</h3><p>Últimas execuções e alertas.</p></div><i aria-hidden="true">⌄</i></div></summary><div class="section-body"><div class="history-actions"><button type="button" class="danger-ghost" id="clear-history">Limpar histórico</button></div><div id="events" class="events"><p class="empty">Nenhuma execução registrada.</p></div></div></details>
   </main>
+  <dialog id="about-dialog"><div class="about-heading"><div class="brand"><span class="logo">I</span><div><h2>Iponto</h2><p>Seu ponto, no horário certo.</p></div></div><button type="button" id="about-close" aria-label="Fechar">×</button></div><div class="about-content"><p><strong>Versão 1.1.0</strong></p><p>Automação de jornada desenvolvida para registrar e confirmar pontos no Controle de Projetos.</p><dl><dt>Desenvolvimento</dt><dd>Jorgean</dd><dt>Tecnologias</dt><dd>Node.js, Express e Playwright</dd><dt>Plataformas</dt><dd>Windows e interface PWA para Android</dd></dl></div></dialog>
   <div id="toast" role="status"></div><script src="/app.js" type="module"></script>
 </body></html>
