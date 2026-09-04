@@ -69,8 +69,12 @@ export class Scheduler {
     try {
       const result = await punch(s, job.kind);
       const message = `Ponto de ${job.label} ${time} batido com sucesso`;
-      const event = this.store.addEvent({ jobId, type: job.label, time, status: 'success', message, detail: result.message });
-      try { await sendAlert(s, 'Iponto — SUCESSO CONFIRMADO', `${event.message}\n\nConfirmação: ${event.detail}\nRegistro Iponto: ${event.id}`); }
+      const activity = result.activity || null;
+      const event = this.store.addEvent({ jobId, type: job.label, time, status: 'success', message, detail: result.message, activity });
+      const activityText = activity
+        ? `\nAtividade: ${activity.code || 'código não identificado'}${activity.description ? ` — ${activity.description}` : ''}`
+        : '\nAtividade: não foi possível identificar o código e a descrição na página';
+      try { await sendAlert(s, 'Iponto — SUCESSO CONFIRMADO', `${event.message}${activityText}\n\nConfirmação: ${event.detail}\nRegistro Iponto: ${event.id}`); }
       catch (mailError) { this.store.addEvent({ jobId: `${jobId}:email`, type: 'email', time, status: 'warning', message: `Ponto registrado, mas o e-mail falhou: ${mailError.message}` }); }
       return { ok: true, message };
     } catch (error) {

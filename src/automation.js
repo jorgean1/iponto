@@ -63,6 +63,48 @@ async function visibleGenericStartControls(page) {
   return found;
 }
 
+function parseActivity(text, codeHint = '') {
+  const lines = String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  let code = String(codeHint || '').trim();
+  let index = code ? lines.findIndex(line => new RegExp(`\\b${code}\\b`).test(line)) : -1;
+  if (!code) {
+    index = lines.findIndex(line => /\b\d{4,}\b/.test(line));
+    code = lines[index]?.match(/\b(\d{4,})\b/)?.[1] || '';
+  }
+  if (!code) return null;
+  let description = index >= 0
+    ? lines[index].replace(new RegExp(`^.*?\\b${code}\\b\\s*[-–:]?\\s*`), '').trim()
+    : '';
+  if (!description && index >= 0) {
+    description = lines.slice(index + 1).find(line => !/^(iniciar|parar|iniciado|atual)$/i.test(line)) || '';
+  }
+  description = description.replace(/\s*(?:iniciar|parar|alterar atividade)\s*$/i, '').trim();
+  return { code, description };
+}
+
+async function activityNearControl(control, codeHint = '') {
+  const texts = await control.evaluate(element => {
+    const values = [];
+    let current = element;
+    for (let level = 0; current && level < 7; level++, current = current.parentElement) {
+      const copy = current.cloneNode(true);
+      copy.querySelectorAll('button, a, input, [role="button"]').forEach(item => item.remove());
+      values.push(copy.innerText || copy.textContent || '');
+    }
+    return values;
+  }).catch(() => []);
+  for (const text of texts) {
+    const activity = parseActivity(text, codeHint);
+    if (activity && (activity.description || text.length > String(codeHint).length)) return activity;
+  }
+  return codeHint ? { code: String(codeHint), description: '' } : null;
+}
+
+async function currentActivity(page) {
+  const stops = await visibleActionControls(page, 'stop');
+  return stops.length ? activityNearControl(stops[0]) : null;
+}
+
 async function waitForPunchState(page, kind, timeoutMs = 15000) {
   const deadline = Date.now() + timeoutMs;
   let stableAbsenceChecks = 0;
@@ -172,6 +214,7 @@ export async function punch(settings, kind, options = {}) {
     const codeUsed = kind === 'start' ? String(settings.activityCode || '').trim() : '';
     const attempted = new Set();
     let selectedDescription = '';
+    let activity = null;
     let confirmed = false;
     const maxAttempts = Number(options.maxAttempts || 3);
 
@@ -184,7 +227,7 @@ export async function punch(settings, kind, options = {}) {
       }
 
       const currentStops = await visibleActionControls(page, 'stop');
-      if (kind === 'start' && currentStops.length) { confirmed = true; selectedDescription ||= 'atividade já estava em andamento'; break; }
+      if (kind === 'start' && currentStops.length) { activity = await currentActivity(page); confirmed = true; selectedDescription ||= 'atividade já estava em andamento'; break; }
       if (kind === 'stop' && !currentStops.length) { confirmed = true; selectedDescription ||= 'atividade já estava parada'; break; }
 
       let controls;
@@ -211,6 +254,15 @@ export async function punch(settings, kind, options = {}) {
       if (!choices.length) choices = controls.map((control, index) => ({ control, signature: `${kind}-repeat-${attempt}-${index}`, index }));
       const choice = kind === 'start' && !codeUsed ? choices[Math.floor(Math.random() * choices.length)] : choices[0];
       attempted.add(choice.signature);
+      if (kind === 'stop') {
+        activity ||= await activityNearControl(choice.control);
+        activity ||= parseActivity(await page.locator('body').innerText().catch(() => ''));
+      }
+      if (kind === 'start' && !codeUsed) {
+        const onclick = await choice.control.getAttribute('onclick').catch(() => '');
+        const activityCode = onclick?.match(/IniciarAtividade\(\s*(\d+)/i)?.[1] || '';
+        activity = await activityNearControl(choice.control, activityCode);
+      }
       selectedDescription = codeUsed
         ? `código ${codeUsed}`
         : kind === 'start' ? `atividade ${choice.index + 1} de ${controls.length}` : 'controle Parar';
@@ -237,6 +289,7 @@ export async function punch(settings, kind, options = {}) {
         ? 'Após atualizar /Lancamentos, a atividade não permaneceu em andamento'
         : 'Após atualizar /Lancamentos, a atividade ainda aparece em andamento'
     );
+    if (kind === 'start') activity = await currentActivity(page) || activity || (codeUsed ? { code: codeUsed, description: '' } : null);
 
     const body = await page.locator('body').innerText();
     if (/erro|falha|inválid/i.test(body) && !/sem erro/i.test(body)) throw new IpontoError('O site exibiu uma mensagem de erro após o clique');
@@ -244,7 +297,8 @@ export async function punch(settings, kind, options = {}) {
       ok: true,
       message: kind === 'start'
         ? `Entrada confirmada no site usando ${selectedDescription}`
-        : `Saída confirmada no site usando ${selectedDescription}`
+        : `Saída confirmada no site usando ${selectedDescription}`,
+      activity
     };
   } catch (error) {
     if (error instanceof IpontoError) throw error;

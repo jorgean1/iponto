@@ -35,6 +35,7 @@ Para acessar pelo Android na mesma rede, abra `http://IP-DO-COMPUTADOR:3077` no 
 - Um clique só é considerado bem-sucedido após confirmação do estado no site: **Parar** deve aparecer depois de iniciar e desaparecer depois de parar.
 - Sem código, são usados exclusivamente os links cujo `onclick` chama `IniciarAtividade(...)`. Se uma tentativa não for confirmada, o Iponto volta a `/Lancamentos`, reconcilia o estado e tenta outra atividade, até três vezes sem repetir a opção enquanto houver alternativas.
 - Os e-mails usam os assuntos **SUCESSO CONFIRMADO** ou **FALHA AO REGISTRAR** e incluem o identificador do mesmo evento salvo no histórico.
+- Nos e-mails de sucesso, o Iponto também informa o código e a descrição da atividade efetivamente iniciada ou parada, conforme identificados na página após a confirmação.
 - Após cada batida, o navegador automatizado atualiza a página de lançamentos e confirma novamente o estado. As telas abertas do Iponto detectam o novo sucesso e se atualizam automaticamente.
 - Se o navegador suspender a aba do Iponto em segundo plano, ela recarrega automaticamente ao voltar a ficar visível. Abas externas do Controle de Projetos não podem ser controladas pela PWA.
 - Para atualizar também a aba externa do Controle de Projetos sem foco, instale a extensão de navegador em `extension`. Ela monitora pontos confirmados, recarrega as duas páginas e oferece o botão **Atualizar páginas agora**. As instruções estão em `extension/README.md` e o pacote pronto em `dist/Iponto-Extensao-Chrome.zip`.
