@@ -2,6 +2,16 @@
 
 Aplicação web instalável para Windows e Android que agenda os botões **Iniciar** e **Parar** no Controle de Projetos e envia o resultado por e-mail.
 
+## Downloads
+
+| Arquivo | Download direto |
+| --- | --- |
+| Instalador do Iponto para Windows | [⬇️ Baixar Iponto-Setup.exe](https://github.com/jorgean1/iponto/raw/refs/heads/main/dist/Iponto-Setup.exe) |
+| Instalador compactado | [⬇️ Baixar Iponto-Setup.zip](https://github.com/jorgean1/iponto/raw/refs/heads/main/dist/Iponto-Setup.zip) |
+| Extensão para Chrome e Edge | [⬇️ Baixar Iponto-Extensao-Chrome.zip](https://github.com/jorgean1/iponto/raw/refs/heads/main/dist/Iponto-Extensao-Chrome.zip) |
+
+Para uma instalação normal no Windows, use **Iponto-Setup.exe**.
+
 ## Arquitetura importante
 
 A interface funciona no Windows e no Android como PWA. A automação precisa continuar rodando em um computador Windows ou servidor com Node.js; navegadores Android suspendem tarefas em segundo plano e não oferecem a confiabilidade necessária para horários exatos.
